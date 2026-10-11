@@ -1,0 +1,66 @@
+import sys
+from unittest.mock import AsyncMock, patch
+
+import pytest
+from langchain_core.messages import AIMessage
+
+from conftest import ScriptedChatModel
+from kynomesh import client
+from travel import main
+from travel.discovery import WorkerInfo
+
+
+def _llm(*texts: str) -> ScriptedChatModel:
+    return ScriptedChatModel(responses=[AIMessage(content=t) for t in texts])
+
+
+async def test_supervisor_agent_is_built_from_discovered_workers(caplog):
+    workers = (WorkerInfo("flights", "Finds flights", ()),)
+    caplog.set_level("INFO", logger="travel")
+
+    with (
+        patch.object(main, "discover_workers", AsyncMock(return_value=workers)),
+        patch.object(main.supervisor_module, "build_llm", return_value=_llm("ok")),
+    ):
+        graph, card = await main.build_supervisor_agent()
+
+    assert card.name == "Travel Supervisor"
+    assert "discovered workers: ['flights']" in caplog.text
+    result = await graph.ainvoke({"messages": [{"role": "user", "content": "hi"}]})
+    assert result["messages"][-1].content == "ok"
+
+
+async def test_worker_agent_uses_its_role_tools_and_card():
+    with patch.object(main.supervisor_module, "build_llm", return_value=_llm("done")):
+        graph, card = main.build_worker_agent("weather")
+
+    assert card.name == "weather"
+    result = await graph.ainvoke({"messages": [{"role": "user", "content": "hi"}]})
+    assert result["messages"][-1].content == "done"
+
+
+def test_missing_api_key_exits_with_message(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setattr(sys, "argv", ["travel", "--role", "flights"])
+
+    with pytest.raises(SystemExit, match="OPENAI_API_KEY"):
+        main.main()
+
+
+def test_supervisor_outside_kynomesh_exits_with_message(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "x")
+    monkeypatch.setattr(sys, "argv", ["travel", "--role", "supervisor"])
+
+    async def no_topology(role):
+        raise client.TopologyNotAvailableError
+
+    monkeypatch.setattr(main, "serve", no_topology)
+
+    with pytest.raises(SystemExit, match="no Kynomesh topology"):
+        main.main()
+
+
+def test_unknown_role_rejected(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["travel", "--role", "pilot"])
+    with pytest.raises(SystemExit):
+        main.main()
