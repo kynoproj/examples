@@ -5,11 +5,14 @@ At startup it asks Kynomesh who its peers are, reads each peer's `AgentCard`,
 and generates one tool per worker from that card. Add or remove a worker in the
 `AgentSet` and the supervisor picks it up without a code change or a new image.
 
-```
-                AgentSet: langgraph-travel (pattern: Supervisor)
-  client ──A2A──> supervisor ──A2A──> flights
-                      ├──────A2A──> hotels
-                      └──────A2A──> weather   (added/removed in the demo)
+```mermaid
+flowchart LR
+    client([client]) -- A2A --> supervisor
+    subgraph AgentSet["AgentSet: langgraph-travel (pattern: Supervisor)"]
+        supervisor -- A2A --> flights
+        supervisor -- A2A --> hotels
+        supervisor -. "A2A (added/removed in the demo)" .-> weather
+    end
 ```
 
 | File                                   | Role                                                                                           |

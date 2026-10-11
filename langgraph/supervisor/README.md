@@ -4,10 +4,13 @@ A [LangGraph](https://langchain-ai.github.io/langgraph/) supervisor agent that
 delegates to two worker agents, each running in its own pod and reached over A2A
 through Kynomesh.
 
-```
-              AgentSet: langgraph-supervisor
-  client ──A2A──> supervisor ──A2A──> researcher   (fact lookup)
-                      └──────A2A──> calculator   (arithmetic)
+```mermaid
+flowchart LR
+    client([client]) -- A2A --> supervisor
+    subgraph AgentSet["AgentSet: langgraph-supervisor (pattern: Supervisor)"]
+        supervisor -- A2A --> researcher["researcher (fact lookup)"]
+        supervisor -- A2A --> calculator["calculator (arithmetic)"]
+    end
 ```
 
 | File                        | Role                                                                                                      |
