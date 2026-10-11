@@ -1,0 +1,44 @@
+# Travel planner (Claude Agent SDK), base set: a supervisor that discovers its workers,
+# plus flights and hotels.
+#
+# One image runs every agent; --role picks which. The supervisor's code never
+# names a worker: it asks Kynomesh for its peers at startup.
+#
+# driftReload is on fleet-wide, so when a worker's AgentCard changes Kynomesh
+# restarts the supervisor and it re-reads the card.
+#
+# Create the secret first (see README):
+#   kubectl create secret generic anthropic-api-key --from-literal=ANTHROPIC_API_KEY=...
+apiVersion: kynomesh.kyno.sh/v1alpha1
+kind: AgentSet
+metadata:
+  name: claude-travel
+spec:
+  pattern: Supervisor
+  entry: supervisor
+  driftReload:
+    enabled: true
+  agents:
+    - name: supervisor
+      container:
+        image: claude-travel:latest
+        imagePullPolicy: IfNotPresent
+        args: ["--role", "supervisor"]
+        env: &anthropic-env
+          - name: ANTHROPIC_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: anthropic-api-key
+                key: ANTHROPIC_API_KEY
+    - name: flights
+      container:
+        image: claude-travel:latest
+        imagePullPolicy: IfNotPresent
+        args: ["--role", "flights"]
+        env: *anthropic-env
+    - name: hotels
+      container:
+        image: claude-travel:latest
+        imagePullPolicy: IfNotPresent
+        args: ["--role", "hotels"]
+        env: *anthropic-env

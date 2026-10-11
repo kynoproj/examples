@@ -1,0 +1,22 @@
+# AgentSet with a single Claude Agent SDK agent.
+#
+# Create the secret first (see README):
+#   kubectl create secret generic anthropic-api-key --from-literal=ANTHROPIC_API_KEY=...
+apiVersion: kynomesh.kyno.sh/v1alpha1
+kind: AgentSet
+metadata:
+  name: claude-chat
+spec:
+  pattern: Supervisor
+  entry: chat-agent
+  agents:
+    - name: chat-agent
+      container:
+        image: claude-chat:latest
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: ANTHROPIC_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: anthropic-api-key
+                key: ANTHROPIC_API_KEY
