@@ -43,9 +43,9 @@ name = "aiologic"
 version = "0.17.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "sniffio" },
+    { name = "sniffio", marker = "python_full_version < '3.14'" },
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
-    { name = "wrapt" },
+    { name = "wrapt", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f1/7a/d51f2fde1e8ae8a83431f8e97b7a71e9358cdb1d4d2ce6be387fa44d68de/aiologic-0.17.1.tar.gz", hash = "sha256:2e1b93b9e88ced318c2a63ad7b382688f40cbfe40e3d42258d49dc9c5aea179d", size = 252354, upload-time = "2026-06-27T20:41:33.25Z" }
 wheels = [
@@ -468,7 +468,7 @@ name = "culsans"
 version = "0.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "aiologic" },
+    { name = "aiologic", marker = "python_full_version < '3.14'" },
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d9/e3/49afa1bc180e0d28008ec6bcdf82a4072d1c7a41032b5b759b60814ca4b0/culsans-0.11.0.tar.gz", hash = "sha256:0b43d0d05dce6106293d114c86e3fb4bfc63088cfe8ff08ed3fe36891447fe33", size = 107546, upload-time = "2025-12-31T23:15:38.196Z" }
@@ -490,7 +490,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions", marker = "(python_full_version < '3.13' and sys_platform != 'emscripten') or (python_full_version < '3.12' and sys_platform == 'emscripten')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -968,7 +968,7 @@ wheels = [
 
 [[package]]
 name = "kynomesh"
-version = "0.1.0"
+version = "0.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "a2a-sdk", extra = ["grpc", "http-server"] },
@@ -978,9 +978,9 @@ dependencies = [
     { name = "rfc8785" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/60/48/e1e8800244f5e489c53144355c8e16d4037478096e7c1daaf2ea8b1d51a1/kynomesh-0.1.0.tar.gz", hash = "sha256:97a654c595aaa26207eee4d81fbea8fcd0b227d7c1fb9f001ef830d4eb882c69", size = 119308, upload-time = "2026-10-07T22:30:54.656Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5a/b1/ca6255be662c20dde690d7dd8a4fef49729146872730151caddeffe147b0/kynomesh-0.1.1.tar.gz", hash = "sha256:d90db11167588ee0417b69435f2c5c69039cda5dc88d5367a25c4c6c8bf93206", size = 121657, upload-time = "2026-10-11T23:34:38.373Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a7/eb/88a8585c0d3505f1ed9fd8886a8e77751e295eb1b576e06de7ec7a4ce4da/kynomesh-0.1.0-py3-none-any.whl", hash = "sha256:aa59fde991acc590c537053093377b994dd015ef49f2d95128d39a895d848780", size = 26462, upload-time = "2026-10-07T22:30:53.643Z" },
+    { url = "https://files.pythonhosted.org/packages/fe/ab/beffc593ad90f4e29cbf8057ed22dbb221c82a596b5bf0398ba925aaf111/kynomesh-0.1.1-py3-none-any.whl", hash = "sha256:99af70c85ecba93785e1002187d76c06ceff1d67cbd4b7e5ab7dc173b3dfe535", size = 27439, upload-time = "2026-10-11T23:34:37.396Z" },
 ]
 
 [[package]]
@@ -1002,7 +1002,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "kynomesh", specifier = ">=0.1.0" },
+    { name = "kynomesh", specifier = ">=0.1.1" },
     { name = "langchain", specifier = ">=1.0" },
     { name = "langchain-openai", specifier = ">=0.3" },
     { name = "langgraph", specifier = ">=1.0" },

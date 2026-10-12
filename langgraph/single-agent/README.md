@@ -54,4 +54,4 @@ Behind a TLS-intercepting proxy the image build fails certificate checks. Pass
 the proxy CA: `make build CA_CERT=/path/to/ca.pem`.
 
 > **Note:** the agent card sets `protocol_version` on each interface. Without it
-> `a2acli` (a2a-go) fails with `no compatible transports found`.
+> `a2acli` fails with `no compatible transports found`.

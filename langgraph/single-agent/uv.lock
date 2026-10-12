@@ -967,7 +967,7 @@ wheels = [
 
 [[package]]
 name = "kynomesh"
-version = "0.1.0"
+version = "0.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "a2a-sdk", extra = ["grpc", "http-server"] },
@@ -977,9 +977,9 @@ dependencies = [
     { name = "rfc8785" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/60/48/e1e8800244f5e489c53144355c8e16d4037478096e7c1daaf2ea8b1d51a1/kynomesh-0.1.0.tar.gz", hash = "sha256:97a654c595aaa26207eee4d81fbea8fcd0b227d7c1fb9f001ef830d4eb882c69", size = 119308, upload-time = "2026-10-07T22:30:54.656Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5a/b1/ca6255be662c20dde690d7dd8a4fef49729146872730151caddeffe147b0/kynomesh-0.1.1.tar.gz", hash = "sha256:d90db11167588ee0417b69435f2c5c69039cda5dc88d5367a25c4c6c8bf93206", size = 121657, upload-time = "2026-10-11T23:34:38.373Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a7/eb/88a8585c0d3505f1ed9fd8886a8e77751e295eb1b576e06de7ec7a4ce4da/kynomesh-0.1.0-py3-none-any.whl", hash = "sha256:aa59fde991acc590c537053093377b994dd015ef49f2d95128d39a895d848780", size = 26462, upload-time = "2026-10-07T22:30:53.643Z" },
+    { url = "https://files.pythonhosted.org/packages/fe/ab/beffc593ad90f4e29cbf8057ed22dbb221c82a596b5bf0398ba925aaf111/kynomesh-0.1.1-py3-none-any.whl", hash = "sha256:99af70c85ecba93785e1002187d76c06ceff1d67cbd4b7e5ab7dc173b3dfe535", size = 27439, upload-time = "2026-10-11T23:34:37.396Z" },
 ]
 
 [[package]]
@@ -1000,7 +1000,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "kynomesh", specifier = ">=0.1.0" },
+    { name = "kynomesh", specifier = ">=0.1.1" },
     { name = "langgraph", specifier = ">=0.6" },
     { name = "openai", specifier = ">=1.0" },
 ]
