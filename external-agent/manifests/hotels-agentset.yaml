@@ -1,0 +1,24 @@
+# The hotels agent, deployed as its own AgentSet. The travel AgentSet
+# (agentset.yaml) references it as an external agent.
+#
+# Create the secret first (see README):
+#   kubectl create secret generic anthropic-api-key --from-literal=ANTHROPIC_API_KEY=...
+apiVersion: kynomesh.kyno.sh/v1alpha1
+kind: AgentSet
+metadata:
+  name: external-hotels
+spec:
+  pattern: Supervisor
+  entry: hotels
+  agents:
+    - name: hotels
+      container:
+        image: claude-travel:latest
+        imagePullPolicy: IfNotPresent
+        args: ["--role", "hotels"]
+        env:
+          - name: ANTHROPIC_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: anthropic-api-key
+                key: ANTHROPIC_API_KEY

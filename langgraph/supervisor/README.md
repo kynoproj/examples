@@ -77,4 +77,4 @@ The knowledge base covers France, Japan, Kubernetes and A2A. Anything else makes
 the researcher answer "No facts found".
 
 > **Note:** each agent card sets `protocol_version` on its interfaces. Without
-> it `a2acli` (a2a-go) fails with `no compatible transports found`.
+> it `a2acli` fails with `no compatible transports found`.

@@ -133,8 +133,3 @@ Clean up with `make delete`.
 
 Behind a TLS-intercepting proxy the image build fails certificate checks. Pass
 the proxy CA: `make build CA_CERT=/path/to/ca.pem`.
-
-> **Status:** unit tests pass. In a container, a worker starts, serves its card
-> (including `EXTRA_SKILLS`), and launches the bundled CLI, which reaches the
-> Anthropic API (a bad key comes back as a clean `Invalid API key` error); the
-> supervisor exits with a clear message outside a Kynomesh pod.

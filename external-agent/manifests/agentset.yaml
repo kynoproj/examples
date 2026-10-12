@@ -1,7 +1,13 @@
-# Supervisor + researcher, with the calculator as an EXTERNAL agent: it lives in
-# another AgentSet (calculator-agentset.yaml), so nothing is deployed for it here.
+# Travel planner whose `hotels` agent is EXTERNAL: it lives in another AgentSet
+# (hotels-agentset.yaml), so nothing is deployed for it here.
 #
-# Deploy calculator-agentset.yaml first. Create the secret first (see README):
+# The supervisor (Claude Agent SDK) discovers its workers from the topology and
+# their AgentCards, so it finds `hotels` like any other worker. `flights` is a
+# LangGraph agent in this AgentSet.
+#
+# Deploy hotels-agentset.yaml first. Build the images first (make build), then
+# create both secrets (see README):
+#   kubectl create secret generic anthropic-api-key --from-literal=ANTHROPIC_API_KEY=...
 #   kubectl create secret generic openai-api-key --from-literal=OPENAI_API_KEY=...
 #
 # pattern: Supervisor means the entry agent sees every other agent, including
@@ -10,32 +16,32 @@
 apiVersion: kynomesh.kyno.sh/v1alpha1
 kind: AgentSet
 metadata:
-  name: langgraph-external
+  name: external-travel
 spec:
   pattern: Supervisor
   entry: supervisor
   agents:
     - name: supervisor
       container:
-        image: langgraph-external:latest
+        image: claude-travel:latest
         imagePullPolicy: IfNotPresent
         args: ["--role", "supervisor"]
         env:
-          - name: OPENAI_API_KEY
+          - name: ANTHROPIC_API_KEY
             valueFrom:
               secretKeyRef:
-                name: openai-api-key
-                key: OPENAI_API_KEY
-          # The calculator's broker presents a self-signed certificate, so skip
+                name: anthropic-api-key
+                key: ANTHROPIC_API_KEY
+          # The hotels broker presents a self-signed certificate, so skip
           # verification for this peer (encrypted, but not authenticated). Leave
           # this out for a real external agent with a CA-signed certificate.
           - name: KYNOMESH_INSECURE_TLS_PEERS
-            value: calculator
-    - name: researcher
+            value: hotels
+    - name: flights
       container:
-        image: langgraph-external:latest
+        image: langgraph-travel:latest
         imagePullPolicy: IfNotPresent
-        args: ["--role", "researcher"]
+        args: ["--role", "flights"]
         env:
           - name: OPENAI_API_KEY
             valueFrom:
@@ -46,5 +52,5 @@ spec:
     # <agentset>-<agent> is the Service for an agent in another AgentSet. The
     # short name works in the same namespace; otherwise use
     # https://<agentset>-<agent>.<namespace>.svc:8490
-    - name: calculator
-      url: https://langgraph-calculator-calculator:8490
+    - name: hotels
+      url: https://external-hotels-hotels:8490
