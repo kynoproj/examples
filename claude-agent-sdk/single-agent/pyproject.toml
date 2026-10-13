@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "A single Claude Agent SDK agent running as a Kynomesh AgentSet"
 requires-python = ">=3.10"
 dependencies = [
-    "kynomesh>=0.1.1",
+    "kynomesh>=0.1.2",
     "claude-agent-sdk>=0.2",
 ]
 
