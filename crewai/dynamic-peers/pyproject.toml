@@ -1,0 +1,26 @@
+[project]
+name = "kynomesh-crewai-dynamic-peers"
+version = "0.1.0"
+description = "A CrewAI supervisor that discovers its worker agents at startup on Kynomesh"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "kynomesh>=0.1.2",
+    "crewai>=1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/crew_travel"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["src"]

@@ -1,0 +1,152 @@
+# CrewAI: a supervisor that discovers its workers
+
+A travel-planning supervisor built with the [CrewAI](https://docs.crewai.com/)
+whose worker agents are **not named in its code**. At startup it asks Kynomesh
+who its peers are, reads each peer's `AgentCard`, and generates one tool per
+worker from that card. Add or remove a worker in the `AgentSet` and the
+supervisor picks it up without a code change or a new image. The workers are
+CrewAI agents too.
+
+```mermaid
+flowchart LR
+    client([client]) -- A2A --> supervisor
+    subgraph AgentSet["AgentSet: crew-travel (pattern: Supervisor)"]
+        supervisor -- A2A --> flights
+        supervisor -- A2A --> hotels
+        supervisor -. "A2A (added/removed in the demo)" .-> weather
+    end
+```
+
+CrewAI does not speak A2A, and does not need to. Kynomesh's Python SDK runs each
+agent's A2A server and makes the calls between agents; CrewAI only sees ordinary
+tools:
+
+```mermaid
+flowchart LR
+    server["kynomesh.server<br/>(A2A server)"] --> exec["CrewExecutor"]
+    exec -- "agent.kickoff_async" --> agent["CrewAI Agent<br/>(OpenAI)"]
+    agent --> tool["ask_flights, ask_hotels, ...<br/>(generated tools)"]
+    tool -- "blocking_ask" --> peer["kynomesh.client.peer_client<br/>(A2A client)"] -- A2A --> worker["worker pod"]
+```
+
+| File                                      | Role                                                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `src/crew_travel/discovery.py`            | `client.peers()` + `client.resolve_agent_card()` → `WorkerInfo` per peer. No names.                     |
+| `src/crew_travel/supervisor.py`           | Builds one `ask_<peer>` tool per worker, and the instruction's worker list, from those cards.           |
+| `src/crew_travel/agent.py`                | `build_agent` and `run_agent`: the CrewAI plumbing shared by every role.                                |
+| `src/crew_travel/peers.py`                | `ask_peer` (A2A call via `peer_client`) and `blocking_ask`, which lets a CrewAI tool call it.           |
+| `src/crew_travel/workers.py` / `tools.py` | The roles this image _can_ run (`flights`, `hotels`, `weather`) and their stub tools. No external APIs. |
+| `src/crew_travel/main.py`                 | `--role supervisor` or a worker role. The manifest decides which workers exist.                         |
+| `manifests/agentset.yaml`                 | Supervisor + `flights` + `hotels`, with `driftReload` on.                                               |
+| `manifests/agentset-with-weather.yaml`    | The same plus `weather`.                                                                                |
+
+## How the pieces fit
+
+- **Peers come from the topology.** With `pattern: Supervisor`, Kynomesh gives
+  the entry agent a peer list of every other agent. The SDK reads it once per
+  process, so the supervisor's worker set is fixed until its pod restarts.
+- **Generated tools are ordinary CrewAI tools.** CrewAI takes a tool's name from
+  the `@tool` decorator, its description from the docstring and its argument
+  schema from the type hints, so `peer_tools` sets those from each worker's
+  card.
+- **Tools run on a worker thread with their own event loop.** CrewAI does this
+  for sync and async tools alike, but the Kynomesh client caches peer
+  connections for a single event loop. So the generated tools are plain
+  functions that call `blocking_ask`, which hands the A2A call back to the
+  server's loop with `run_coroutine_threadsafe` and waits (up to 120s) for the
+  reply. If it is ever called on the loop thread, it raises instead of
+  deadlocking.
+- **Drift reload covers changed cards.** If a worker's `AgentCard` changes (for
+  example it gains a skill), `driftReload` restarts the pods holding the stale
+  card, and the supervisor rebuilds its tools from the new one. See
+  [Drift Reload](https://github.com/kynoproj/kynomesh/blob/main/docs/user-guide/reference/drift-reload.md).
+- **Discovery warms each peer with `peer_client`.** That records the peer's card
+  hash, which `driftReload` compares against. A peer this process never built a
+  client for is "unknown" to drift detection, so without the warm-up a card
+  change on a not-yet-called worker would go unnoticed.
+- **Unreachable workers don't block startup.** A peer whose card can't be
+  fetched after a few retries is logged and skipped.
+- **A failing worker doesn't crash a run.** The supervisor's tool returns an
+  error string to the model, so it can answer around it.
+- **Requests are independent.** A standalone `Agent` answers each one with
+  `kickoff_async` from a clean conversation; there is no Task or Crew to wire
+  up.
+- Agents run on OpenAI by default. Set `OPENAI_MODEL` to pick a model (default
+  `gpt-4o-mini`).
+- CrewAI draws progress panels to stdout, keeps state under `$HOME` and sends
+  telemetry by default. `run_agent` suppresses the panels, and the Dockerfile
+  gives the `nobody` user a writable home and turns telemetry and tracing off.
+- CrewAI needs Python below 3.14, so the project pins `requires-python` to
+  `>=3.10,<3.14`.
+
+## Prerequisites
+
+- Python 3.10 to 3.13 and [uv](https://docs.astral.sh/uv/)
+- An `OPENAI_API_KEY`. Agents refuse to start without one.
+- [`a2acli`](https://github.com/kynoproj/a2acli)
+- Docker, `kubectl`, and a local Kubernetes cluster with
+  [Kynomesh installed](https://github.com/kynoproj/kynomesh/blob/main/docs/quick-start.md)
+
+## 1. Run the tests
+
+```shell
+uv run pytest    # no API calls
+```
+
+The supervisor needs the Kynomesh topology, which only exists in-cluster. A
+worker runs locally:
+`OPENAI_API_KEY=... uv run python -m crew_travel.main --role flights`.
+
+## 2. Deploy
+
+```shell
+make build                     # builds crew-travel:latest
+# k3d:   k3d image import crew-travel:latest -c <cluster>
+# kind:  kind load docker-image crew-travel:latest
+kubectl create secret generic openai-api-key --from-literal=OPENAI_API_KEY=...
+make deploy
+kubectl get agentset,agentdeploy
+kubectl port-forward svc/crew-travel-ingress 8490
+```
+
+Ask it something. The supervisor logs the workers it found:
+
+```shell
+kubectl logs -l app.kubernetes.io/name=crew-travel-supervisor -c agent | grep discovered
+a2acli -k -u https://localhost:8490 --override-host=localhost:8490 \
+  send 'Plan a weekend in Tokyo: flights from SFO and a hotel'
+a2acli -k -u https://localhost:8490 --override-host=localhost:8490 \
+  send 'What is the weather in Tokyo this weekend?'      # no worker for this yet
+```
+
+## 3. Add a worker: no code change
+
+```shell
+kubectl apply -f manifests/agentset-with-weather.yaml
+kubectl get pods -w                                      # supervisor restarts
+kubectl logs -l app.kubernetes.io/name=crew-travel-supervisor -c agent | grep discovered
+a2acli ... send 'What is the weather in Tokyo this weekend?'   # now answered
+```
+
+Remove it again with `kubectl apply -f manifests/agentset.yaml`. The supervisor
+goes back to two workers.
+
+## 4. Change a worker's card: drift reload
+
+The workers read an optional `EXTRA_SKILLS` env var that adds skills to their
+card. It stands in for shipping a new version of an agent that gained a skill.
+
+```shell
+kubectl patch agentset crew-travel --type=json -p='[
+  {"op":"add","path":"/spec/agents/2/container/env/-",
+   "value":{"name":"EXTRA_SKILLS","value":"price-comparison"}}]'
+```
+
+`/spec/agents/2` is `hotels`. Once its pods roll, Kynomesh detects that the
+`hotels` card changed and restarts the supervisor, whose `ask_hotels` tool now
+lists the new skill. Check the supervisor's pod age to see the restart.
+
+Clean up with `make delete`.
+
+Behind a TLS-intercepting proxy the image build fails certificate checks. Pass
+the proxy CA: `make build CA_CERT=/path/to/ca.pem`.

@@ -15,10 +15,13 @@ self-contained: copy its folder and it runs.
 | Google ADK                   | [single-agent](google-adk/single-agent)         | A Google ADK agent (Gemini) with a function tool, served as a one-agent `AgentSet`                                                                        |
 | Google ADK                   | [supervisor](google-adk/supervisor)             | A supervisor delegating to two worker agents (researcher, calculator) over A2A, using the `Supervisor` pattern                                            |
 | Google ADK                   | [dynamic-peers](google-adk/dynamic-peers)       | A Google ADK supervisor that discovers its ADK workers from Kynomesh at startup, so adding or removing a worker needs no code change (with `driftReload`) |
+| CrewAI                       | [single-agent](crewai/single-agent)             | A CrewAI agent (OpenAI) with a custom tool, served as a one-agent `AgentSet`                                                                              |
+| CrewAI                       | [supervisor](crewai/supervisor)                 | A supervisor delegating to two worker agents (researcher, calculator) over A2A, using the `Supervisor` pattern                                            |
+| CrewAI                       | [dynamic-peers](crewai/dynamic-peers)           | A CrewAI supervisor that discovers its CrewAI workers from Kynomesh at startup, so adding or removing a worker needs no code change (with `driftReload`)  |
 | LangGraph + Claude Agent SDK | [mixed-fleet](mixed-fleet)                      | One `AgentSet` mixing frameworks: a Claude supervisor discovering LangGraph and Claude workers, with no new agent code                                    |
 | LangGraph + Claude Agent SDK | [external-agent](external-agent)                | A supervisor calling a worker that lives in another `AgentSet`, referenced with `externalAgents`                                                          |
 
-Planned: CrewAI, and more multi-agent `AgentSet` patterns (Handoff, Sequential).
+Planned: more multi-agent `AgentSet` patterns (Handoff, Sequential).
 
 All Python examples use the
 [Kynomesh Python SDK](https://github.com/kynoproj/kynomesh-py).
