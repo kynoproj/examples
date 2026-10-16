@@ -1,4 +1,4 @@
-"""An in-process custom tool for the agent. No Kynomesh imports."""
+"""An in-process custom tool for the agent."""
 
 from __future__ import annotations
 

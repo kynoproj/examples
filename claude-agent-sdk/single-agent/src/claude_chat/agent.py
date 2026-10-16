@@ -1,4 +1,4 @@
-"""The agent's logic, built on the Claude Agent SDK. No Kynomesh imports.
+"""The agent's logic, built on the Claude Agent SDK.
 
 Each request runs one `query()`, which spawns the Claude Code CLI bundled with
 the SDK. The agent runs in a pod, so it is locked down: no built-in tools (Bash,

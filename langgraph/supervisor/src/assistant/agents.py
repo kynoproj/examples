@@ -1,4 +1,4 @@
-"""The three LangGraph agents. No Kynomesh imports except via peers.ask_peer."""
+"""The three LangGraph agents."""
 
 from __future__ import annotations
 

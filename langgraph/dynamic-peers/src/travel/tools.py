@@ -1,4 +1,4 @@
-"""Worker tools: deterministic stubs over small built-in data. No Kynomesh imports."""
+"""Worker tools: deterministic stubs over small built-in data."""
 
 from __future__ import annotations
 

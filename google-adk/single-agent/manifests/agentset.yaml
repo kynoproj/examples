@@ -1,0 +1,22 @@
+# AgentSet with a single Google ADK agent.
+#
+# Create the secret first (see README):
+#   kubectl create secret generic google-api-key --from-literal=GOOGLE_API_KEY=...
+apiVersion: kynomesh.kyno.sh/v1alpha1
+kind: AgentSet
+metadata:
+  name: adk-chat
+spec:
+  pattern: Supervisor
+  entry: chat-agent
+  agents:
+    - name: chat-agent
+      container:
+        image: adk-chat:latest
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: GOOGLE_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: google-api-key
+                key: GOOGLE_API_KEY

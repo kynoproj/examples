@@ -1,4 +1,4 @@
-"""A supervisor whose tools are generated from discovered workers. No Kynomesh imports."""
+"""A supervisor whose tools are generated from discovered workers."""
 
 from __future__ import annotations
 

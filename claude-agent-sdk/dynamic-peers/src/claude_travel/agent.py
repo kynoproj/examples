@@ -1,4 +1,4 @@
-"""Shared Claude Agent SDK plumbing for every role. No Kynomesh imports.
+"""Shared Claude Agent SDK plumbing for every role.
 
 Each request runs one `query()`, which spawns the Claude Code CLI bundled with the
 SDK. Agents run in pods, so every role is locked down the same way: no built-in
