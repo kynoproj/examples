@@ -31,7 +31,8 @@ flowchart LR
   process, so the supervisor's worker set is fixed until its pod restarts.
 - **Drift reload covers changed cards.** If a worker's `AgentCard` changes (for
   example it gains a skill), `driftReload` restarts the pods holding the stale
-  card, and the supervisor rebuilds its tools from the new one. See
+  card, and the supervisor rebuilds its tools from the new one. This is not
+  instant (see step 4). See
   [Drift Reload](https://github.com/kynoproj/kynomesh/blob/main/docs/user-guide/reference/drift-reload.md).
 - **Discovery warms each peer with `peer_client`.** That records the peer's card
   hash, which `driftReload` compares against. A peer this process never built a
@@ -105,7 +106,20 @@ kubectl patch agentset langgraph-travel --type=json -p='[
 
 `/spec/agents/2` is `hotels`. Once its pods roll, Kynomesh detects that the
 `hotels` card changed and restarts the supervisor, whose `ask_hotels` tool now
-lists the new skill. Check the supervisor's pod age to see the restart.
+lists the new skill.
+
+**Give it a few minutes.** The supervisor does not restart as soon as the
+`hotels` pods are back, and that is expected, not a failure. Kynomesh waits for
+the changed card to stay stable, and for the rollout to finish, before it
+restarts the supervisor.
+
+```shell
+kubectl get pods -w                    # the supervisor restarts after a few minutes
+```
+
+Check the supervisor's pod age to confirm the restart. For the mechanism, see
+the
+[AgentCard drift detection spec](https://kyno.sh/stable/development/specifications/agentcard-drift-reload/).
 
 Clean up with `make delete`.
 
