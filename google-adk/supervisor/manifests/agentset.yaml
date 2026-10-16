@@ -1,0 +1,39 @@
+# Supervisor + two workers, one image. The --role flag picks the agent.
+#
+# Create the secret first (see README):
+#   kubectl create secret generic google-api-key --from-literal=GOOGLE_API_KEY=...
+#
+# pattern: Supervisor means the entry agent sees every other agent, and the
+# workers see nobody. That matches this example: the supervisor calls the
+# researcher and the calculator, and the workers have nothing to call.
+apiVersion: kynomesh.kyno.sh/v1alpha1
+kind: AgentSet
+metadata:
+  name: adk-supervisor
+spec:
+  pattern: Supervisor
+  entry: supervisor
+  agents:
+    - name: supervisor
+      container:
+        image: adk-supervisor:latest
+        imagePullPolicy: IfNotPresent
+        args: ["--role", "supervisor"]
+        env: &google-env
+          - name: GOOGLE_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: google-api-key
+                key: GOOGLE_API_KEY
+    - name: researcher
+      container:
+        image: adk-supervisor:latest
+        imagePullPolicy: IfNotPresent
+        args: ["--role", "researcher"]
+        env: *google-env
+    - name: calculator
+      container:
+        image: adk-supervisor:latest
+        imagePullPolicy: IfNotPresent
+        args: ["--role", "calculator"]
+        env: *google-env
